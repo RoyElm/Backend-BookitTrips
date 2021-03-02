@@ -37,8 +37,6 @@ function verifyAdmin(request, response, next) {
             return;
         }
 
-        // For refresh token - generate new token here...
-
         next();
     });
 }

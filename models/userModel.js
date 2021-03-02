@@ -8,6 +8,7 @@ class UserModel {
         this.lastName = existingUsers.lastName;
         this.username = existingUsers.username;
         this.password = existingUsers.password;
+        this.isAdmin = existingUsers.isAdmin;
     };
 
     static #registerValidateSchema = Joi.object({
@@ -16,6 +17,7 @@ class UserModel {
         lastName: Joi.string().required().min(2).max(30),
         username: Joi.string().required().min(2).max(30),
         password: Joi.string().required().min(6).max(5000),
+        isAdmin: Joi.number().optional()
     });
 
     static #loginValidateSchema = Joi.object({
@@ -24,6 +26,7 @@ class UserModel {
         lastName: Joi.string().optional().min(2).max(30),
         username: Joi.string().required().min(2).max(30),
         password: Joi.string().required().min(6).max(5000),
+        isAdmin: Joi.number().optional()
     });
 
     validateRegister() {
