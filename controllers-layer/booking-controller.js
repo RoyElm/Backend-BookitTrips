@@ -29,7 +29,9 @@ router.post("/", verifyAdmin, async (request, response) => {
             response.status(400).json(error);
             return;
         }
-        const addedVacation = await bookingLogic.addNewVacationAsync(vacation, request.files.newImage);
+        //Validation for image 
+        const addedVacation = await bookingLogic.addNewVacationAsync(vacation, request.files ? request.files.newImage : null);
+        if (!addedVacation) return response.status(400).send("Image doesn't exist or wrong file has been send");
         response.status(201).json(addedVacation);
         socketHelper.vacationAdded(addedVacation)
     }
@@ -49,7 +51,9 @@ router.put("/:vacationId", verifyAdmin, async (request, response) => {
         }
         vacation.vacationId = +request.params.vacationId;
         const editedVacation = await bookingLogic.updateFullVacationAsync(vacation, request.files ? request.files.newImage : null);
-        response.status(201).json(editedVacation);
+        if (editedVacation === 404) return response.status(404).send("Vacation Doesn't Exist");
+        if (editedVacation === 400) return response.status(404).send("Wrong file has been send");
+        response.json(editedVacation);
         socketHelper.vacationUpdated(editedVacation)
     }
     catch (err) {
@@ -75,7 +79,7 @@ router.delete("/:vacationId", verifyAdmin, async (request, response) => {
 // Send the image:
 router.get("/images/:imageName", (request, response) => {
     const { imageName } = request.params;
-    const absolutePath = path.join(__dirname, "..", "images", imageName);
+    const absolutePath = path.join(__dirname, "..", "upload/images", imageName);
     response.sendFile(absolutePath);
 });
 

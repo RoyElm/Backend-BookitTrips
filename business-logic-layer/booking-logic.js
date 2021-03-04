@@ -36,11 +36,15 @@ async function getOneVacationAsync(vacationId) {
 
 //Add new vacation
 async function addNewVacationAsync(vacation, image) {
+    //Check image extension
+    const regex = /\.(gif|jpg|jpeg|tiff|png|ico|xbm|tif|svgz|jif|svg|jfif|webp|bmp|pjpeg|avif)$/i;
+
+    if (image && !path.extname(image.name).match(regex) || !image) return null;
 
     // Save image to the disk: 
-    const extension = image.name.substr(image.name.lastIndexOf("."));
+    const extension = path.extname(image.name);
     const newFileName = uuid.v4() + extension;
-    await image.mv("./images/" + newFileName);
+    await image.mv("upload/images/" + newFileName);
 
     const sql = `INSERT INTO bookingVacations VALUES(DEFAULT,?,?,?,?,?,?) `;
     const info = await dal.executeAsync(sql,
@@ -55,12 +59,17 @@ async function addNewVacationAsync(vacation, image) {
 // Update full vacation and replace the image: 
 async function updateFullVacationAsync(vacation, image) {
 
+    //Check image extension
+    const regex = /\.(gif|jpg|jpeg|tiff|png|ico|xbm|tif|svgz|jif|svg|jfif|webp|bmp|pjpeg|avif)$/i;
     if (image) {
-        const absolutePath = path.join(__dirname, "..", "images", vacation.imageFileName);
-        await fs.unlinkSync(absolutePath);
-        const extension = image.name.substr(image.name.lastIndexOf("."));
-        vacation.imageFileName = uuid.v4() + extension;
-        await image.mv("./images/" + vacation.imageFileName);
+        if (!path.extname(image.name).match(regex)) return 400;
+        const absolutePath = path.join(__dirname, "..", "upload/images", vacation.imageFileName);
+        if (await fs.existsSync(absolutePath)) {
+            await fs.unlinkSync(absolutePath);
+            const extension = path.extname(image.name);
+            vacation.imageFileName = uuid.v4() + extension;
+            await image.mv("upload/images/" + vacation.imageFileName);
+        }
     }
 
     const sql = `UPDATE bookingVacations SET destination = ?,
@@ -72,15 +81,17 @@ async function updateFullVacationAsync(vacation, image) {
         vacation.toDate, vacation.imageFileName, vacation.price, vacation.vacationId]);
 
     vacation = await getOneVacationAsync(vacation.vacationId);
-    return info.affectedRows === 0 ? null : vacation;
+    return !info.affectedRows ? 404 : vacation;
 }
 
 //Delete vacation from DB and delete the image.
 async function deleteVacationAsync(vacationId) {
     const imageSql = `SELECT imageFileName FROM bookingVacations WHERE vacationId = ?`;
     const response = await dal.executeAsync(imageSql, [vacationId]);
-    const absolutePath = path.join(__dirname, "..", "images", response[0].imageFileName);
-    await fs.unlinkSync(absolutePath);
+    let absolutePath;
+    if (response[0].imageFileName)
+        absolutePath = path.join(__dirname, "..", "upload/images", response[0].imageFileName);
+    if (await fs.existsSync(absolutePath)) await fs.unlinkSync(absolutePath);
     const deleteVacationFromDBSql = `DELETE FROM bookingVacations WHERE vacationId = ?`;
     await dal.executeAsync(deleteVacationFromDBSql, [vacationId]);
 }
