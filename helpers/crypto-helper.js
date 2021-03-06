@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 
-const salt = "*";
+const salt = "BookThingsAtSexyWay";
 
 function hash(plainText) {
 
