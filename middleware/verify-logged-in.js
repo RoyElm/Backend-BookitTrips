@@ -19,7 +19,7 @@ function verifyLoggedIn(request, response, next) {
         return;
     }
     // Verify the token: 
-    jwt.verify(token, "AmazingLocations", (err, payload) => { // payload.user
+    jwt.verify(token, "*", (err, payload) => { // payload.user
         
         if (err && err.message === "jwt expired") {
             response.status(403).send("Your login session has expired. Please login again.");

@@ -1,4 +1,4 @@
-global.config = require(process.env.NODE_ENV === "production" ? "./config-prod.json" : "./config-dev.json");
+global.config = require(process.env.NODE_ENV === "production" ? "./env/config-prod.json" : "./env/config-dev.json");
 const express = require("express");
 const authController = require("./controllers-layer/auth-controller");
 const bookingController = require("./controllers-layer/booking-controller");

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const key = "AmazingLocations";
+const key = "*";
 
 function getNewToken(payload) {
     return jwt.sign(payload, key, { expiresIn: "30m" });
