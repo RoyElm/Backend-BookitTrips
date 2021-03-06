@@ -15,8 +15,7 @@ async function getAllVacationsAsync() {
                     GROUP BY B.vacationId
                     ORDER BY Count(F.userId) DESC`;
 
-    const vacations = await dal.executeAsync(sql);
-    return vacations;
+    return await dal.executeAsync(sql);
 }
 
 //get one vacation by VacationId; self use not exporting.
@@ -59,6 +58,9 @@ async function addNewVacationAsync(vacation, image) {
 // Update full vacation and replace the image: 
 async function updateFullVacationAsync(vacation, image) {
 
+    if (!vacation.imageFileName)
+        vacation.imageFileName = await getImageNameAsync(vacation.vacationId);
+
     //Check image extension
     const regex = /\.(gif|jpg|jpeg|tiff|png|ico|xbm|tif|svgz|jif|svg|jfif|webp|bmp|pjpeg|avif)$/i;
     if (image) {
@@ -84,13 +86,21 @@ async function updateFullVacationAsync(vacation, image) {
     return !info.affectedRows ? 404 : vacation;
 }
 
-//Delete vacation from DB and delete the image.
-async function deleteVacationAsync(vacationId) {
+//Get imageFileName from server by specific vacationId
+async function getImageNameAsync(vacationId) {
     const imageSql = `SELECT imageFileName FROM bookingVacations WHERE vacationId = ?`;
     const response = await dal.executeAsync(imageSql, [vacationId]);
+    if (!response.length) return null
+    return response[0].imageFileName;
+}
+
+
+//Delete vacation from DB and delete the image.
+async function deleteVacationAsync(vacationId) {
+    const imageFileName = await getImageNameAsync(vacationId);
     let absolutePath;
-    if (response[0].imageFileName)
-        absolutePath = path.join(__dirname, "..", "upload/images", response[0].imageFileName);
+    if (imageFileName)
+        absolutePath = path.join(__dirname, "..", "upload/images", imageFileName);
     if (await fs.existsSync(absolutePath)) await fs.unlinkSync(absolutePath);
     const deleteVacationFromDBSql = `DELETE FROM bookingVacations WHERE vacationId = ?`;
     await dal.executeAsync(deleteVacationFromDBSql, [vacationId]);

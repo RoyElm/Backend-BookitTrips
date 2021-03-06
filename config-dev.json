@@ -6,5 +6,6 @@
         "user": "root",
         "password": "",
         "name": "bookingtrip"
-    }
+    },
+    "socketIoUrl":"http://localhost:3000"
 }

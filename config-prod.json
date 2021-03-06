@@ -6,5 +6,6 @@
         "user": "bd9c4160b444f0",
         "password": "ee60cf15",
         "name": "heroku_5a0b0b3fc83a2db"
-    }
+    },
+    "socketIoUrl":"https://bookit-trips.herokuapp.com"
 }
